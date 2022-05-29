@@ -4,6 +4,11 @@ compatibility_date = "2022-05-29"
 workers_dev = true
 main = "build/index.js"
 
+kv_namespaces = [
+  { binding = "SESSIONS", preview_id = "77d4f883f1694cd581f5ff778e898ff0" },
+  { binding = "SETTINGS", preview_id = "e614613ebb274c83888c4ca462f201b1" }
+]
+
 [site]
 bucket = "./public"
 

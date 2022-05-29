@@ -1,11 +1,13 @@
 import type { LoaderFunction } from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare";
-import { useLoaderData, useNavigate } from "@remix-run/react";
+import { useNavigate } from "@remix-run/react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import config from "../../config/google-auth-client.json";
+import { getAuthorizationPost } from "../shared/googleapis";
+import { commitSession, getSession } from "../sessions.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
+  const session = await getSession(request.headers.get("Cookie"));
+
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   if (!code) {
@@ -14,34 +16,22 @@ export const loader: LoaderFunction = async ({ request }) => {
     });
   }
 
-  const url = new URL("https://oauth2.googleapis.com/token");
-  url.searchParams.set("client_id", config.web.client_id);
-  url.searchParams.set("client_secret", config.web.client_secret);
-  url.searchParams.set("code", code);
-  url.searchParams.set("grant_type", "authorization_code");
-  url.searchParams.set("state", "authorization");
-  url.searchParams.set("redirect_uri", "http://localhost:8787/callback");
+  const { refresh_token } = await getAuthorizationPost(code);
+  session.set("refresh_token", refresh_token);
 
-  const resp = await fetch(url.toString(), { method: "POST" });
-  const body = await resp.json();
-  console.log(body);
-
-  return json(body);
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: {
+      "Set-Cookie": await commitSession(session),
+    },
+  });
 };
 
 export const Page = () => {
   const navigate = useNavigate();
-  const loaderData = useLoaderData<{
-    access_token: string;
-    refresh_token: string;
-  }>();
 
   useEffect(() => {
-    localStorage.setItem("GOOGLE_ACCESS_TOKEN", loaderData.access_token);
-    localStorage.setItem("GOOGLE_REFRESH_TOKEN", loaderData.refresh_token);
-
     navigate("/");
-  }, [loaderData.access_token, loaderData.refresh_token, navigate]);
+  }, [navigate]);
 
   return <Link to="/">Back to top</Link>;
 };

@@ -5,12 +5,17 @@ import dayjs from "dayjs";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import config from "../../config/google-auth-client.json";
+import { refreshAccessToken } from "../shared/googleapis";
+import { getSession } from "../sessions.server";
 
 export const action: ActionFunction = async ({ request }) => {
+  const session = await getSession(request.headers.get("Cookie"));
+  const refreshToken = session.get("refresh_token");
+  const accessToken = await refreshAccessToken(refreshToken);
+
   const formData = await request.formData();
   const calendarId = formData.get("calendarId");
   const attendeeEmail = formData.get("attendeeEmail");
-  const token = formData.get("token");
 
   const resp = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?sendUpdates=all`,
@@ -32,7 +37,7 @@ export const action: ActionFunction = async ({ request }) => {
           : undefined,
       }),
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     }
   );
@@ -79,14 +84,11 @@ export default function Index() {
       <button
         onClick={async () => {
           console.log("click");
-          const token = localStorage.getItem("GOOGLE_TOKEN");
-          if (!token) return;
 
           submit(
             {
               calendarId: "",
               attendeeEmail: "",
-              token,
             },
             {
               method: "post",
