@@ -1,7 +1,6 @@
 name = "kaigi-now"
 compatibility_date = "2022-05-29"
 
-account_id = "50e2711803e2978c2a308a08bd75ddc1"
 workers_dev = true
 main = "build/index.js"
 

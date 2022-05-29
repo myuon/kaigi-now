@@ -43,6 +43,18 @@ export const action: ActionFunction = async ({ request }) => {
   });
 };
 
+const getGoogleOAuthUrl = () => {
+  const url = new URL(`https://accounts.google.com/o/oauth2/v2/auth`);
+  url.searchParams.set("scope", "https://www.googleapis.com/auth/calendar");
+  url.searchParams.set("client_id", config.web.client_id);
+  url.searchParams.set("redirect_uri", "http://localhost:8787/callback");
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("access_type", "offline");
+  url.searchParams.set("state", "get_code");
+
+  return url.toString();
+};
+
 export default function Index() {
   const submit = useSubmit();
   const action = useActionData<{ eventId: string }>();
@@ -63,11 +75,7 @@ export default function Index() {
         gap: "8px",
       }}
     >
-      <a
-        href={`https://accounts.google.com/o/oauth2/v2/auth?client_id=${config.web.client_id}&redirect_uri=http://localhost:8787/callback&response_type=token&scope=https://www.googleapis.com/auth/calendar`}
-      >
-        ログイン
-      </a>
+      <a href={getGoogleOAuthUrl()}>ログイン</a>
       <button
         onClick={async () => {
           console.log("click");
