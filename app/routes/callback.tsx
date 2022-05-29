@@ -1,8 +1,7 @@
 import type { LoaderFunction } from "@remix-run/cloudflare";
-import { useNavigate } from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
-import { getAuthorizationPost } from "../shared/googleapis";
+import { getAuthorizationPost } from "../api/googleapis";
 import { commitSession, getSession } from "../sessions.server";
 
 export const loader: LoaderFunction = async ({ request }) => {

@@ -1,3 +1,4 @@
+import type dayjs from "dayjs";
 import config from "../../config/google-auth-client.json";
 
 export const getAuthorizationPost = async (code: string) => {
@@ -31,4 +32,50 @@ export const refreshAccessToken = async (refreshToken: string) => {
   }>();
 
   return body.access_token;
+};
+
+export const generateGoogleOAuthUrl = () => {
+  const url = new URL(`https://accounts.google.com/o/oauth2/v2/auth`);
+  url.searchParams.set("scope", "https://www.googleapis.com/auth/calendar");
+  url.searchParams.set("client_id", config.web.client_id);
+  url.searchParams.set("redirect_uri", "http://localhost:8787/callback");
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("access_type", "offline");
+  url.searchParams.set("state", "get_code");
+
+  return url.toString();
+};
+
+export const createCalendarEvent = async (
+  accessToken: string,
+  {
+    calendarId,
+    start,
+    end,
+    attendees,
+  }: {
+    calendarId: string;
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+    attendees?: { email: string }[];
+  }
+) => {
+  return fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?sendUpdates=all`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        start: {
+          dateTime: start.format("YYYY-MM-DDTHH:mm:ss+09:00"),
+        },
+        end: {
+          dateTime: end.format("YYYY-MM-DDTHH:mm:ss+09:00"),
+        },
+        attendees,
+      }),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
 };
