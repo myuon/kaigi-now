@@ -7,6 +7,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import type { ErrorBoundaryComponent } from "@remix-run/react/routeModules";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -25,8 +26,23 @@ export default function App() {
         <Outlet />
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
+        <LiveReload port={8002} />
       </body>
     </html>
   );
 }
+
+export const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
+  console.error(error);
+
+  return (
+    <html>
+      <head>
+        <title>Error</title>
+      </head>
+      <body>
+        <Scripts />
+      </body>
+    </html>
+  );
+};
