@@ -1,5 +1,5 @@
 {
-  "extends": ["@remix-run/eslint-config"],
+  "extends": ["@remix-run/eslint-config", "prettier"],
   "rules": {
     "react/self-closing-comp": "error"
   }
