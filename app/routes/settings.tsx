@@ -40,14 +40,12 @@ export const action: ActionFunction = async ({ request }) => {
       status: 404,
     });
   }
+  const setting = await userSettingApi.get(userId);
 
-  await SETTINGS.put(
-    userId,
-    JSON.stringify({
-      calendarIds: form.getAll("calendar").map((value) => value.toString()),
-      attendeeEmail: form.get("attendeeEmail")?.toString(),
-    })
-  );
+  await userSettingApi.set(userId, {
+    ...setting,
+    calendarIds: form.getAll("calendar").map((value) => value.toString()),
+  });
 
   return json({ ok: true });
 };
