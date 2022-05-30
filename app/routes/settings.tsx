@@ -2,22 +2,22 @@ import type { ActionFunction, LoaderFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getSession } from "../sessions.server";
 import {
-  getCalendarList,
-  getPeopleMe,
-  refreshAccessToken,
+  googleAuthApi,
+  googleCalendarApi,
+  googlePeopleApi,
 } from "../api/googleapis";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
   const refreshToken = session.get("refresh_token");
-  const accessToken = await refreshAccessToken(refreshToken);
+  const accessToken = await googleAuthApi.refreshAccessToken(refreshToken);
 
-  const peopleMe = await getPeopleMe(accessToken);
+  const peopleMe = await googlePeopleApi.getCurrentUser(accessToken);
   const userId = peopleMe.metadata.sources.find(
     (source) => source.type === "PROFILE"
   )?.id;
-  const calendarList = await getCalendarList(accessToken);
+  const calendarList = await googleCalendarApi.getCalendarList(accessToken);
 
   const setting = userId
     ? JSON.parse((await SETTINGS.get(userId)) ?? "null")
@@ -70,7 +70,12 @@ export default function Page() {
         <fieldset>
           {data.calendarList.map((option) => (
             <label key={option.id}>
-              <input name="calendar" type="checkbox" value={option.id} defaultChecked={data.setting.calendarIds.includes(option.id)} />
+              <input
+                name="calendar"
+                type="checkbox"
+                value={option.id}
+                defaultChecked={data.setting.calendarIds.includes(option.id)}
+              />
               {option.summary}
             </label>
           ))}

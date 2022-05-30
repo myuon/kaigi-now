@@ -4,21 +4,21 @@ import { Link, useActionData, useNavigate, useSubmit } from "@remix-run/react";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import {
-  createCalendarEvent,
   generateGoogleOAuthUrl,
-  refreshAccessToken,
+  googleAuthApi,
+  googleCalendarApi,
 } from "../api/googleapis";
 import { getSession } from "../sessions.server";
 
 export const action: ActionFunction = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
   const refreshToken = session.get("refresh_token");
-  const accessToken = await refreshAccessToken(refreshToken);
+  const accessToken = await googleAuthApi.refreshAccessToken(refreshToken);
 
   const formData = await request.formData();
   const calendarId = formData.get("calendarId")?.toString();
 
-  const event = await createCalendarEvent(accessToken, {
+  const event = await googleCalendarApi.createCalendarEvent(accessToken, {
     calendarId: calendarId!,
     start: dayjs(),
     end: dayjs().add(30, "m"),

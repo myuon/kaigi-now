@@ -1,7 +1,7 @@
 import type dayjs from "dayjs";
 import config from "../../config/google-auth-client.json";
 
-export const getAuthorizationPost = async (code: string) => {
+const getAuthorizationCode = async (code: string) => {
   const url = new URL("https://oauth2.googleapis.com/token");
   url.searchParams.set("client_id", config.web.client_id);
   url.searchParams.set("client_secret", config.web.client_secret);
@@ -19,7 +19,7 @@ export const getAuthorizationPost = async (code: string) => {
   return body;
 };
 
-export const refreshAccessToken = async (refreshToken: string) => {
+const refreshAccessToken = async (refreshToken: string) => {
   const url = new URL("https://oauth2.googleapis.com/token");
   url.searchParams.set("client_id", config.web.client_id);
   url.searchParams.set("client_secret", config.web.client_secret);
@@ -32,6 +32,11 @@ export const refreshAccessToken = async (refreshToken: string) => {
   }>();
 
   return body.access_token;
+};
+
+export const googleAuthApi = {
+  getAuthorizationCode,
+  refreshAccessToken,
 };
 
 export const generateGoogleOAuthUrl = () => {
@@ -52,7 +57,7 @@ export const generateGoogleOAuthUrl = () => {
   return url.toString();
 };
 
-export const createCalendarEvent = async (
+const createCalendarEvent = async (
   accessToken: string,
   {
     calendarId,
@@ -88,7 +93,7 @@ export const createCalendarEvent = async (
   return await resp.json<{ id: string }>();
 };
 
-export const getCalendarList = async (accessToken: string) => {
+const getCalendarList = async (accessToken: string) => {
   const resp = await fetch(
     `https://www.googleapis.com/calendar/v3/users/me/calendarList`,
     {
@@ -101,7 +106,12 @@ export const getCalendarList = async (accessToken: string) => {
   return await resp.json<{ items: { id: string; summary: string }[] }>();
 };
 
-export const getPeopleMe = async (accessToken: string) => {
+export const googleCalendarApi = {
+  createCalendarEvent,
+  getCalendarList,
+};
+
+const getPeopleMe = async (accessToken: string) => {
   const url = new URL(`https://people.googleapis.com/v1/people/me`);
   url.searchParams.set("personFields", ["metadata", "names"].join(","));
 
@@ -114,4 +124,8 @@ export const getPeopleMe = async (accessToken: string) => {
   return await resp.json<{
     metadata: { sources: { type: string; id: string }[] };
   }>();
+};
+
+export const googlePeopleApi = {
+  getCurrentUser: getPeopleMe,
 };

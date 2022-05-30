@@ -1,7 +1,7 @@
 import type { LoaderFunction } from "@remix-run/cloudflare";
 import { Link, useNavigate } from "@remix-run/react";
 import { useEffect } from "react";
-import { getAuthorizationPost } from "../api/googleapis";
+import { googleAuthApi } from "../api/googleapis";
 import { commitSession, getSession } from "../sessions.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -15,7 +15,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     });
   }
 
-  const { refresh_token } = await getAuthorizationPost(code);
+  const { refresh_token } = await googleAuthApi.getAuthorizationCode(code);
   session.set("refresh_token", refresh_token);
 
   return new Response(JSON.stringify({ ok: true }), {
