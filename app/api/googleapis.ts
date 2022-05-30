@@ -36,7 +36,13 @@ export const refreshAccessToken = async (refreshToken: string) => {
 
 export const generateGoogleOAuthUrl = () => {
   const url = new URL(`https://accounts.google.com/o/oauth2/v2/auth`);
-  url.searchParams.set("scope", "https://www.googleapis.com/auth/calendar");
+  url.searchParams.set(
+    "scope",
+    [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/userinfo.profile",
+    ].join(" ")
+  );
   url.searchParams.set("client_id", config.web.client_id);
   url.searchParams.set("redirect_uri", "http://localhost:8787/callback");
   url.searchParams.set("response_type", "code");
@@ -60,7 +66,7 @@ export const createCalendarEvent = async (
     attendees?: { email: string }[];
   }
 ) => {
-  return fetch(
+  const resp = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?sendUpdates=all`,
     {
       method: "POST",
@@ -78,4 +84,34 @@ export const createCalendarEvent = async (
       },
     }
   );
+
+  return await resp.json<{ id: string }>();
+};
+
+export const getCalendarList = async (accessToken: string) => {
+  const resp = await fetch(
+    `https://www.googleapis.com/calendar/v3/users/me/calendarList`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  return await resp.json<{ items: { id: string; summary: string }[] }>();
+};
+
+export const getPeopleMe = async (accessToken: string) => {
+  const url = new URL(`https://people.googleapis.com/v1/people/me`);
+  url.searchParams.set("personFields", ["metadata", "names"].join(","));
+
+  const resp = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return await resp.json<{
+    metadata: { sources: { type: string; id: string }[] };
+  }>();
 };

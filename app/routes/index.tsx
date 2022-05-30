@@ -18,12 +18,11 @@ export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const calendarId = formData.get("calendarId")?.toString();
 
-  const resp = await createCalendarEvent(accessToken, {
+  const event = await createCalendarEvent(accessToken, {
     calendarId: calendarId!,
     start: dayjs(),
     end: dayjs().add(30, "m"),
   });
-  const event = await resp.json<{ id: string }>();
 
   return json({
     eventId: event.id,
