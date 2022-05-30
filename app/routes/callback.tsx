@@ -1,7 +1,9 @@
 import type { LoaderFunction } from "@remix-run/cloudflare";
 import { Link, useNavigate } from "@remix-run/react";
 import { useEffect } from "react";
-import { googleAuthApi } from "../api/googleapis";
+import { googleAuthApi, googlePeopleApi } from "../api/googleapis";
+import { userSessionApi } from "../api/session";
+import { userSettingApi } from "../api/setting";
 import { commitSession, getSession } from "../sessions.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -15,8 +17,29 @@ export const loader: LoaderFunction = async ({ request }) => {
     });
   }
 
-  const { refresh_token } = await googleAuthApi.getAuthorizationCode(code);
-  session.set("refresh_token", refresh_token);
+  const { access_token, refresh_token } =
+    await googleAuthApi.getAuthorizationCode(code);
+
+  const peopleMe = await googlePeopleApi.getCurrentUser(access_token);
+  const userId = peopleMe.metadata.sources.find(
+    (source) => source.type === "PROFILE"
+  )?.id;
+  if (!userId) {
+    return new Response(JSON.stringify({ error: "userId is empty" }), {
+      status: 401,
+    });
+  }
+
+  userSessionApi.set(session, {
+    userId,
+    accessToken: access_token,
+  });
+
+  const setting = userSettingApi.get(userId);
+  userSettingApi.set(userId, {
+    ...setting,
+    refreshToken: refresh_token,
+  });
 
   return new Response(JSON.stringify({ ok: true }), {
     headers: {
@@ -29,7 +52,7 @@ export const Page = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate("/");
+    navigate("/settings");
   }, [navigate]);
 
   return <Link to="/">Back to top</Link>;

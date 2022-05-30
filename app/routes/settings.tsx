@@ -1,29 +1,30 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getSession } from "../sessions.server";
-import {
-  googleAuthApi,
-  googleCalendarApi,
-  googlePeopleApi,
-} from "../api/googleapis";
+import { googleAuthApi, googleCalendarApi } from "../api/googleapis";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { userSessionApi } from "../api/session";
+import type { UserSetting } from "../api/setting";
+import { userSettingApi } from "../api/setting";
+
+interface LoaderData {
+  userId?: string;
+  calendarList?: { id: string; summary: string }[];
+  setting?: UserSetting;
+}
 
 export const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
-  const refreshToken = session.get("refresh_token");
-  const accessToken = await googleAuthApi.refreshAccessToken(refreshToken);
+  const { accessToken, userId } = userSessionApi.get(session);
 
-  const peopleMe = await googlePeopleApi.getCurrentUser(accessToken);
-  const userId = peopleMe.metadata.sources.find(
-    (source) => source.type === "PROFILE"
-  )?.id;
+  if (!userId || !accessToken) {
+    return json<LoaderData>({});
+  }
+
   const calendarList = await googleCalendarApi.getCalendarList(accessToken);
+  const setting = await userSettingApi.get(userId);
 
-  const setting = userId
-    ? JSON.parse((await SETTINGS.get(userId)) ?? "null")
-    : undefined;
-
-  return json({
+  return json<LoaderData>({
     userId,
     calendarList: calendarList.items,
     setting,
@@ -52,15 +53,13 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function Page() {
-  const data = useLoaderData<{
-    userId: string;
-    calendarList: { id: string; summary: string }[];
-    setting: { calendarIds: string[] };
-  }>();
+  const data = useLoaderData<LoaderData>();
   const result = useActionData();
 
   return (
     <div>
+      <a href={googleAuthApi.generateAuthUrl()}>ログイン</a>
+
       <p>{data?.userId}</p>
       <p>current: {JSON.stringify(data.setting)}</p>
       <p>{JSON.stringify(result)}</p>
@@ -68,13 +67,13 @@ export default function Page() {
         <input type="hidden" name="userId" value={data?.userId} />
 
         <fieldset>
-          {data.calendarList.map((option) => (
+          {data?.calendarList?.map((option) => (
             <label key={option.id}>
               <input
                 name="calendar"
                 type="checkbox"
                 value={option.id}
-                defaultChecked={data.setting.calendarIds.includes(option.id)}
+                defaultChecked={data?.setting?.calendarIds?.includes(option.id)}
               />
               {option.summary}
             </label>

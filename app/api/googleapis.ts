@@ -34,12 +34,7 @@ const refreshAccessToken = async (refreshToken: string) => {
   return body.access_token;
 };
 
-export const googleAuthApi = {
-  getAuthorizationCode,
-  refreshAccessToken,
-};
-
-export const generateGoogleOAuthUrl = () => {
+const generateAuthUrl = () => {
   const url = new URL(`https://accounts.google.com/o/oauth2/v2/auth`);
   url.searchParams.set(
     "scope",
@@ -55,6 +50,12 @@ export const generateGoogleOAuthUrl = () => {
   url.searchParams.set("state", "get_code");
 
   return url.toString();
+};
+
+export const googleAuthApi = {
+  getAuthorizationCode,
+  refreshAccessToken,
+  generateAuthUrl,
 };
 
 const createCalendarEvent = async (

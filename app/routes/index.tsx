@@ -3,11 +3,7 @@ import { json } from "@remix-run/cloudflare";
 import { Link, useActionData, useNavigate, useSubmit } from "@remix-run/react";
 import dayjs from "dayjs";
 import { useEffect } from "react";
-import {
-  generateGoogleOAuthUrl,
-  googleAuthApi,
-  googleCalendarApi,
-} from "../api/googleapis";
+import { googleAuthApi, googleCalendarApi } from "../api/googleapis";
 import { getSession } from "../sessions.server";
 
 export const action: ActionFunction = async ({ request }) => {
@@ -49,7 +45,6 @@ export default function Index() {
         gap: "8px",
       }}
     >
-      <a href={generateGoogleOAuthUrl()}>ログイン</a>
       <Link to="/settings">設定</Link>
       <button
         onClick={async () => {
