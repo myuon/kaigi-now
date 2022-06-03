@@ -2,10 +2,10 @@ import type { ActionFunction, LoaderFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getSession } from "../sessions.server";
 import { googleAuthApi, googleCalendarApi } from "../api/googleapis";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import { userSessionApi } from "../api/session";
+import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import type { UserSetting } from "../api/setting";
 import { userSettingApi } from "../api/setting";
+import { getAuth } from "../auth.server";
 
 interface LoaderData {
   userId?: string;
@@ -15,8 +15,13 @@ interface LoaderData {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
-  const { accessToken, userId } = userSessionApi.get(session);
+  const auth = await getAuth(session);
 
+  if (!auth) {
+    return json<LoaderData>({});
+  }
+
+  const { accessToken, userId } = auth;
   if (!userId || !accessToken) {
     return json<LoaderData>({});
   }
@@ -56,6 +61,7 @@ export default function Page() {
 
   return (
     <div>
+      <Link to="/">トップに戻る</Link>
       <a href={googleAuthApi.generateAuthUrl()}>ログイン</a>
 
       <p>{data?.userId}</p>

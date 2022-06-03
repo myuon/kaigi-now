@@ -3,19 +3,33 @@ import { json } from "@remix-run/cloudflare";
 import { Link, useActionData, useNavigate, useSubmit } from "@remix-run/react";
 import dayjs from "dayjs";
 import { useEffect } from "react";
-import { googleAuthApi, googleCalendarApi } from "../api/googleapis";
+import { googleCalendarApi } from "../api/googleapis";
+import { userSettingApi } from "../api/setting";
+import { getAuth } from "../auth.server";
 import { getSession } from "../sessions.server";
 
 export const action: ActionFunction = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
-  const refreshToken = session.get("refresh_token");
-  const accessToken = await googleAuthApi.refreshAccessToken(refreshToken);
+  const auth = await getAuth(session);
+  if (!auth) {
+    return new Response(JSON.stringify({ error: "auth is empty" }), {
+      status: 401,
+    });
+  }
 
-  const formData = await request.formData();
-  const calendarId = formData.get("calendarId")?.toString();
+  const setting = await userSettingApi.get(auth.userId);
+
+  const { accessToken } = auth;
+
+  const calendarId = setting?.calendarIds?.[0];
+  if (!calendarId) {
+    return new Response(JSON.stringify({ error: "calendarId is empty" }), {
+      status: 400,
+    });
+  }
 
   const event = await googleCalendarApi.createCalendarEvent(accessToken, {
-    calendarId: calendarId!,
+    calendarId: calendarId,
     start: dayjs(),
     end: dayjs().add(30, "m"),
   });

@@ -1,5 +1,6 @@
 import type { LoaderFunction } from "@remix-run/cloudflare";
 import { Link, useNavigate } from "@remix-run/react";
+import dayjs from "dayjs";
 import { useEffect } from "react";
 import { googleAuthApi, googlePeopleApi } from "../api/googleapis";
 import { userSessionApi } from "../api/session";
@@ -17,7 +18,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     });
   }
 
-  const { access_token, refresh_token } =
+  const { access_token, expires_in, refresh_token } =
     await googleAuthApi.getAuthorizationCode(code);
 
   const peopleMe = await googlePeopleApi.getCurrentUser(access_token);
@@ -33,6 +34,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   userSessionApi.set(session, {
     userId,
     accessToken: access_token,
+    expiresAt: dayjs().unix() + expires_in,
   });
 
   const setting = userSettingApi.get(userId);

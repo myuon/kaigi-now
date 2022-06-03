@@ -13,6 +13,7 @@ const getAuthorizationCode = async (code: string) => {
   const resp = await fetch(url.toString(), { method: "POST" });
   const body = await resp.json<{
     access_token: string;
+    expires_in: number;
     refresh_token: string;
   }>();
 
@@ -29,9 +30,10 @@ const refreshAccessToken = async (refreshToken: string) => {
   const resp = await fetch(url.toString(), { method: "POST" });
   const body = await resp.json<{
     access_token: string;
+    expires_in: number;
   }>();
 
-  return body.access_token;
+  return body;
 };
 
 const generateAuthUrl = () => {
