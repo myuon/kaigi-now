@@ -93,7 +93,13 @@ export default function Page() {
   return (
     <div className="p-4 grid gap-2">
       <LinkButton to="/">トップに戻る</LinkButton>
-      <AnchorButton href={googleAuthApi.generateAuthUrl()}>
+      <AnchorButton
+        href={googleAuthApi.generateAuthUrl(
+          process.env.NODE_ENV === "development"
+            ? "http://localhost:8787/callback"
+            : "https://kaigi-now.myuon.workers.dev/callback"
+        )}
+      >
         ログイン
       </AnchorButton>
 

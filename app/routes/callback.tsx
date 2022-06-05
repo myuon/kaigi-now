@@ -1,5 +1,6 @@
 import type { LoaderFunction } from "@remix-run/cloudflare";
-import { Link, useNavigate } from "@remix-run/react";
+import { json } from "@remix-run/cloudflare";
+import { Link, useLoaderData, useNavigate } from "@remix-run/react";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { googleAuthApi, googlePeopleApi } from "../api/googleapis";
@@ -19,9 +20,22 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 
   const { access_token, expires_in, refresh_token } =
-    await googleAuthApi.getAuthorizationCode(code);
+    await googleAuthApi.getAuthorizationCode(
+      code,
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:8787/callback"
+        : "https://kaigi-now.myuon.workers.dev/callback"
+    );
 
-  const peopleMe = await googlePeopleApi.getCurrentUser(access_token);
+  const { data: peopleMe, error } = await googlePeopleApi.getCurrentUser(
+    access_token
+  );
+  if (error) {
+    return json(
+      { error: "get_current_user_failed", detail: error },
+      { status: 500 }
+    );
+  }
   const userId = peopleMe.metadata.sources.find(
     (source) => source.type === "PROFILE"
   )?.id;
@@ -51,6 +65,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export const Page = () => {
+  const data = useLoaderData();
+  console.log(data);
   const navigate = useNavigate();
 
   useEffect(() => {

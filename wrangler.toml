@@ -5,8 +5,8 @@ workers_dev = true
 main = "build/index.js"
 
 kv_namespaces = [
-  { binding = "SESSIONS", preview_id = "77d4f883f1694cd581f5ff778e898ff0" },
-  { binding = "SETTINGS", preview_id = "e614613ebb274c83888c4ca462f201b1" }
+  { binding = "SESSIONS", preview_id = "77d4f883f1694cd581f5ff778e898ff0", id = "2ea1218a1f534e8db0aed5089b5e34af" },
+  { binding = "SETTINGS", preview_id = "e614613ebb274c83888c4ca462f201b1", id = "61a9919afd92476cbdcc744403540871" }
 ]
 
 [site]

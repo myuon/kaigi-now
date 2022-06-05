@@ -1,14 +1,29 @@
 import type dayjs from "dayjs";
 import config from "../../config/google-auth-client.json";
 
-const getAuthorizationCode = async (code: string) => {
+const fetcher = async <T>(
+  req: string | Request,
+  init: RequestInit | Request | undefined
+) => {
+  const resp = await fetch(req, init);
+  if (!resp.ok) {
+    return {
+      data: undefined,
+      error: await resp.json<{ error: { code: string; message: string } }>(),
+    };
+  } else {
+    return { data: await resp.json<T>(), error: undefined };
+  }
+};
+
+const getAuthorizationCode = async (code: string, redirectUri: string) => {
   const url = new URL("https://oauth2.googleapis.com/token");
   url.searchParams.set("client_id", config.web.client_id);
   url.searchParams.set("client_secret", config.web.client_secret);
   url.searchParams.set("code", code);
   url.searchParams.set("grant_type", "authorization_code");
   url.searchParams.set("state", "authorization");
-  url.searchParams.set("redirect_uri", "http://localhost:8787/callback");
+  url.searchParams.set("redirect_uri", redirectUri);
 
   const resp = await fetch(url.toString(), { method: "POST" });
   const body = await resp.json<{
@@ -36,7 +51,7 @@ const refreshAccessToken = async (refreshToken: string) => {
   return body;
 };
 
-const generateAuthUrl = () => {
+const generateAuthUrl = (redirectUri: string) => {
   const url = new URL(`https://accounts.google.com/o/oauth2/v2/auth`);
   url.searchParams.set(
     "scope",
@@ -46,7 +61,7 @@ const generateAuthUrl = () => {
     ].join(" ")
   );
   url.searchParams.set("client_id", config.web.client_id);
-  url.searchParams.set("redirect_uri", "http://localhost:8787/callback");
+  url.searchParams.set("redirect_uri", redirectUri);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("access_type", "offline");
   url.searchParams.set("state", "get_code");
@@ -224,15 +239,13 @@ const getPeopleMe = async (accessToken: string) => {
   const url = new URL(`https://people.googleapis.com/v1/people/me`);
   url.searchParams.set("personFields", ["metadata", "names"].join(","));
 
-  const resp = await fetch(url.toString(), {
+  return await fetcher<{
+    metadata: { sources: { type: string; id: string }[] };
+  }>(url.toString(), {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
-
-  return await resp.json<{
-    metadata: { sources: { type: string; id: string }[] };
-  }>();
 };
 
 export const googlePeopleApi = {
