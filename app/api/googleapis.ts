@@ -109,9 +109,78 @@ const getCalendarList = async (accessToken: string) => {
   return await resp.json<{ items: { id: string; summary: string }[] }>();
 };
 
+const getCalendarItemsOver = async (
+  accessToken: string,
+  input: {
+    calendarId: string;
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+  }
+) => {
+  const resp = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${
+      input.calendarId
+    }/events?${[
+      [
+        "timeMin",
+        encodeURIComponent(input.start.format("YYYY-MM-DDTHH:mm:ss+09:00")),
+      ].join("="),
+      [
+        "timeMax",
+        encodeURIComponent(input.end.format("YYYY-MM-DDTHH:mm:ss+09:00")),
+      ].join("="),
+    ].join("&")}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  const body = await resp.json<
+    | {
+        items: { id: string }[];
+        error: undefined;
+      }
+    | { items: undefined; error: { code: string } }
+  >();
+  console.info("getCalendarItemsOver", JSON.stringify(body));
+
+  return body;
+};
+
+const deleteCalendarEvent = async (
+  accessToken: string,
+  {
+    calendarId,
+    eventId,
+  }: {
+    calendarId: string;
+    eventId: string;
+  }
+) => {
+  const resp = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (resp.ok) {
+    return { error: undefined };
+  } else {
+    return await resp.json<{ error: { code: string } }>();
+  }
+};
+
 export const googleCalendarApi = {
   createCalendarEvent,
   getCalendarList,
+  getCalendarItemsOver,
+  deleteCalendarEvent,
 };
 
 const getPeopleMe = async (accessToken: string) => {

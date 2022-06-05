@@ -21,6 +21,7 @@ interface LoaderData {
   userId?: string;
   calendarList?: { id: string; summary: string }[];
   setting?: UserSetting;
+  accessToken?: string;
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -42,6 +43,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json<LoaderData>({
     userId,
     calendarList: calendarList.items,
+    accessToken,
     setting,
   });
 };
@@ -96,6 +98,9 @@ export default function Page() {
       </AnchorButton>
 
       <p>UserID: {data?.userId}</p>
+      <p className="text-sm">
+        <code>{data?.accessToken}</code>
+      </p>
       <p>{JSON.stringify(result)}</p>
       <Form method="put" className="grid gap-4">
         <input type="hidden" name="userId" value={data?.userId} />

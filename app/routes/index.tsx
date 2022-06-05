@@ -2,7 +2,7 @@ import type { ActionFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { Link, useActionData, useNavigate, useSubmit } from "@remix-run/react";
 import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { googleCalendarApi } from "../api/googleapis";
 import { userSettingApi } from "../api/setting";
 import { getAuth } from "../auth.server";
@@ -23,34 +23,67 @@ export const action: ActionFunction = async ({ request }) => {
 
   const { accessToken } = auth;
 
-  const calendarId = setting?.calendarIds?.[0];
-  if (!calendarId) {
-    return new Response(JSON.stringify({ error: "calendarId is empty" }), {
-      status: 400,
+  const start = dayjs();
+  const end = dayjs().add(30, "m");
+
+  for (const key in setting?.calendarIds ?? []) {
+    const calendarId = setting?.calendarIds?.[key];
+    if (!calendarId) {
+      continue;
+    }
+
+    const { items, error } = await googleCalendarApi.getCalendarItemsOver(
+      accessToken,
+      {
+        calendarId,
+        start,
+        end,
+      }
+    );
+    if (error) {
+      console.error(error);
+      continue;
+    }
+    // 既に予定が入っていればスキップする
+    if (items?.length > 0) {
+      continue;
+    }
+
+    const event = await googleCalendarApi.createCalendarEvent(accessToken, {
+      calendarId: calendarId,
+      start,
+      end,
+    });
+
+    return json({
+      calendarId,
+      eventId: event.id,
     });
   }
 
-  const event = await googleCalendarApi.createCalendarEvent(accessToken, {
-    calendarId: calendarId,
-    start: dayjs(),
-    end: dayjs().add(30, "m"),
-  });
-
   return json({
-    eventId: event.id,
+    error: "calendar_not_available",
   });
 };
 
 export default function Index() {
   const submit = useSubmit();
-  const action = useActionData<{ eventId: string }>();
+  const action = useActionData<{
+    eventId?: string;
+    calendarId?: string;
+    error?: string;
+  }>();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (action?.eventId) {
-      navigate(`/events/${action.eventId}`);
+      navigate(
+        `/created?eventId=${action.eventId}&calendarId=${action.calendarId}`
+      );
     }
   }, [action, navigate]);
+
+  const [loading, setLoading] = useState(false);
 
   return (
     <div
@@ -68,8 +101,12 @@ export default function Index() {
         </span>
         設定
       </Link>
+      {action?.error && <span className="text-red-600">{action.error}</span>}
       <Button
+        loading={loading}
         onClick={async () => {
+          setLoading(true);
+
           submit(
             {},
             {
