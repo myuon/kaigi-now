@@ -125,6 +125,13 @@ export default function Index() {
       >
         会議なう！
       </Button>
+
+      <div>
+        <h4 className="text-lg">使い方</h4>
+        <p>
+          会議なう！ボタンを押すと、30分の会議が設定されます。会議を設定するカレンダーと優先度は設定画面から設定してください。
+        </p>
+      </div>
     </div>
   );
 }
