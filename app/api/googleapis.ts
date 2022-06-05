@@ -99,10 +99,10 @@ const createCalendarEvent = (
       method: "POST",
       body: JSON.stringify({
         start: {
-          dateTime: start.format("YYYY-MM-DDTHH:mm:ss+09:00"),
+          dateTime: start.format("YYYY-MM-DDTHH:mm:ssZ"),
         },
         end: {
-          dateTime: end.format("YYYY-MM-DDTHH:mm:ss+09:00"),
+          dateTime: end.format("YYYY-MM-DDTHH:mm:ssZ"),
         },
         attendees,
         location,
@@ -140,11 +140,11 @@ const getCalendarItemsOver = async (
     }/events?${[
       [
         "timeMin",
-        encodeURIComponent(input.start.format("YYYY-MM-DDTHH:mm:ss+09:00")),
+        encodeURIComponent(input.start.format("YYYY-MM-DDTHH:mm:ssZ")),
       ].join("="),
       [
         "timeMax",
-        encodeURIComponent(input.end.format("YYYY-MM-DDTHH:mm:ss+09:00")),
+        encodeURIComponent(input.end.format("YYYY-MM-DDTHH:mm:ssZ")),
       ].join("="),
     ].join("&")}`,
     {
