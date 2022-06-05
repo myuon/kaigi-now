@@ -37,7 +37,15 @@ export const loader: LoaderFunction = async ({ request }) => {
     return json<LoaderData>({});
   }
 
-  const calendarList = await googleCalendarApi.getCalendarList(accessToken);
+  const { data: calendarList, error } = await googleCalendarApi.getCalendarList(
+    accessToken
+  );
+  if (error) {
+    return json(
+      { error: "get_calendar_list_failed", detail: error },
+      { status: 500 }
+    );
+  }
   const setting = await userSettingApi.get(userId);
 
   return json<LoaderData>({

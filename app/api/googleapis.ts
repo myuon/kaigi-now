@@ -75,7 +75,7 @@ export const googleAuthApi = {
   generateAuthUrl,
 };
 
-const createCalendarEvent = async (
+const createCalendarEvent = (
   accessToken: string,
   {
     calendarId,
@@ -93,7 +93,7 @@ const createCalendarEvent = async (
     summary?: string;
   }
 ) => {
-  const resp = await fetch(
+  return fetcher<{ id: string }>(
     `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?sendUpdates=all`,
     {
       method: "POST",
@@ -113,12 +113,10 @@ const createCalendarEvent = async (
       },
     }
   );
-
-  return await resp.json<{ id: string }>();
 };
 
-const getCalendarList = async (accessToken: string) => {
-  const resp = await fetch(
+const getCalendarList = (accessToken: string) => {
+  return fetcher<{ items: { id: string; summary: string }[] }>(
     `https://www.googleapis.com/calendar/v3/users/me/calendarList`,
     {
       headers: {
@@ -126,8 +124,6 @@ const getCalendarList = async (accessToken: string) => {
       },
     }
   );
-
-  return await resp.json<{ items: { id: string; summary: string }[] }>();
 };
 
 const getCalendarItemsOver = async (

@@ -26,8 +26,15 @@ export const action: ActionFunction = async ({ request }) => {
   const start = dayjs();
   const end = dayjs().add(30, "m");
 
-  const { items } = await googleCalendarApi.getCalendarList(accessToken);
-  const itemsById = items.reduce((acc, item) => {
+  const { data, error } = await googleCalendarApi.getCalendarList(accessToken);
+  if (error) {
+    return json(
+      { error: "get_calendar_list_failed", detail: error },
+      { status: 500 }
+    );
+  }
+
+  const itemsById = data.items.reduce((acc, item) => {
     acc[item.id] = item;
     return acc;
   }, {} as Record<string, { summary: string }>);
@@ -55,13 +62,20 @@ export const action: ActionFunction = async ({ request }) => {
       continue;
     }
 
-    const event = await googleCalendarApi.createCalendarEvent(accessToken, {
-      calendarId: calendarId,
-      start,
-      end,
-      location: itemsById?.[calendarId]?.summary,
-      summary: "会議@会議なう",
-    });
+    const { data: event, error: errorCreateCalendarEvent } = await googleCalendarApi.createCalendarEvent(
+      accessToken,
+      {
+        calendarId: calendarId,
+        start,
+        end,
+        location: itemsById?.[calendarId]?.summary,
+        summary: "会議@会議なう",
+      }
+    );
+    if (errorCreateCalendarEvent) {
+      console.error(errorCreateCalendarEvent);
+      continue;
+    }
 
     return json({
       calendarId,
@@ -81,6 +95,7 @@ export default function Index() {
     calendarId?: string;
     error?: string;
   }>();
+  console.info(action);
   const navigate = useNavigate();
 
   useEffect(() => {
