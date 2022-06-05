@@ -61,9 +61,9 @@ export default function Index() {
     >
       <Link
         to="/settings"
-        className="underline underline-offset-2 hover:text-gray-700 flex gap-1"
+        className="underline underline-offset-2 hover:text-gray-700 flex gap-1 items-center"
       >
-        <span>
+        <span className="text-lg">
           <Settings />
         </span>
         設定

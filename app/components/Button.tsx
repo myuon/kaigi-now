@@ -11,6 +11,10 @@ export const Button = (props: React.ComponentPropsWithoutRef<"button">) => {
   );
 };
 
+export const IconButton = (props: React.ComponentPropsWithoutRef<"button">) => {
+  return <button className="text-md inline-block" {...props} />;
+};
+
 export const LinkButton = ({
   children,
   ...props

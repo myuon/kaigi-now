@@ -6,8 +6,16 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import type { UserSetting } from "../api/setting";
 import { userSettingApi } from "../api/setting";
 import { getAuth } from "../auth.server";
-import { AnchorButton, Button, LinkButton } from "../components/Button";
+import {
+  AnchorButton,
+  Button,
+  IconButton,
+  LinkButton,
+} from "../components/Button";
 import { CheckBox, TextField } from "../components/Input";
+import { useEffect, useState } from "react";
+import ArrowUpward from "../components/icons/ArrowUpward";
+import ArrowDownward from "../components/icons/ArrowDownward";
 
 interface LoaderData {
   userId?: string;
@@ -57,9 +65,28 @@ export const action: ActionFunction = async ({ request }) => {
   return json({ ok: true });
 };
 
+const swap = <T,>(xs: T[] | undefined, i: number, j: number) => {
+  return xs
+    ? [
+        ...xs.slice(0, i),
+        xs[j],
+        ...xs.slice(i + 1, j),
+        xs[i],
+        ...xs.slice(j + 1),
+      ]
+    : undefined;
+};
+
 export default function Page() {
   const data = useLoaderData<LoaderData>();
   const result = useActionData();
+  const [calendarList, setCalendarList] =
+    useState<LoaderData["calendarList"]>();
+  useEffect(() => {
+    if (data?.calendarList) {
+      setCalendarList(data?.calendarList);
+    }
+  }, [data?.calendarList]);
 
   return (
     <div className="p-4 grid gap-2">
@@ -76,13 +103,43 @@ export default function Page() {
         <fieldset>
           <p>検索する会議室のカレンダーを選択</p>
 
-          {data?.calendarList?.map((option) => (
+          {calendarList?.map((option, i) => (
             <label key={option.id} className="flex items-center gap-1">
               <CheckBox
                 name="calendar"
                 value={option.id}
                 defaultChecked={data?.setting?.calendarIds?.includes(option.id)}
               />
+              {i !== 0 && (
+                <IconButton
+                  type="button"
+                  onClick={() => {
+                    setCalendarList((prev) => swap(prev, i - 1, i));
+                  }}
+                >
+                  <ArrowUpward />
+                </IconButton>
+              )}
+              {i !== calendarList.length - 1 && (
+                <IconButton
+                  type="button"
+                  onClick={() => {
+                    setCalendarList((prev) => swap(prev, i, i + 1));
+                  }}
+                >
+                  <ArrowDownward />
+                </IconButton>
+              )}
+              {(() => {
+                const priority = data.setting?.calendarIds?.findIndex(
+                  (id) => id === option.id
+                );
+                return priority !== -1 ? (
+                  <span className="text-gray-500 font-mono">
+                    [{priority! + 1}]
+                  </span>
+                ) : null;
+              })()}
               {option.summary}
             </label>
           ))}
