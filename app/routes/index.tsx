@@ -6,7 +6,9 @@ import { useEffect } from "react";
 import { googleCalendarApi } from "../api/googleapis";
 import { userSettingApi } from "../api/setting";
 import { getAuth } from "../auth.server";
+import { Button } from "../components/Button";
 import { getSession } from "../sessions.server";
+import Settings from "../components/icons/Settings";
 
 export const action: ActionFunction = async ({ request }) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -52,15 +54,21 @@ export default function Index() {
 
   return (
     <div
+      className="p-8 grid gap-4"
       style={{
         fontFamily: "system-ui, sans-serif",
-        lineHeight: "1.4",
-        display: "grid",
-        gap: "8px",
       }}
     >
-      <Link to="/settings">設定</Link>
-      <button
+      <Link
+        to="/settings"
+        className="underline underline-offset-2 hover:text-gray-700 flex gap-1"
+      >
+        <span>
+          <Settings />
+        </span>
+        設定
+      </Link>
+      <Button
         onClick={async () => {
           console.log("click");
 
@@ -76,7 +84,7 @@ export default function Index() {
         }}
       >
         会議なう！
-      </button>
+      </Button>
     </div>
   );
 }

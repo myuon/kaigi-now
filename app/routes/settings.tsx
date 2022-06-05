@@ -2,10 +2,12 @@ import type { ActionFunction, LoaderFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { getSession } from "../sessions.server";
 import { googleAuthApi, googleCalendarApi } from "../api/googleapis";
-import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import type { UserSetting } from "../api/setting";
 import { userSettingApi } from "../api/setting";
 import { getAuth } from "../auth.server";
+import { AnchorButton, Button, LinkButton } from "../components/Button";
+import { CheckBox, TextField } from "../components/Input";
 
 interface LoaderData {
   userId?: string;
@@ -60,12 +62,16 @@ export default function Page() {
   const result = useActionData();
 
   return (
-    <div>
-      <Link to="/">トップに戻る</Link>
-      <a href={googleAuthApi.generateAuthUrl()}>ログイン</a>
+    <div className="p-4 grid gap-2">
+      <LinkButton to="/">トップに戻る</LinkButton>
+      <AnchorButton href={googleAuthApi.generateAuthUrl()}>
+        ログイン
+      </AnchorButton>
 
       <p>{data?.userId}</p>
-      <p>current: {JSON.stringify(data.setting)}</p>
+      <pre>
+        <code>current: {JSON.stringify(data.setting)}</code>
+      </pre>
       <p>{JSON.stringify(result)}</p>
       <Form method="put">
         <input type="hidden" name="userId" value={data?.userId} />
@@ -73,9 +79,8 @@ export default function Page() {
         <fieldset>
           {data?.calendarList?.map((option) => (
             <label key={option.id}>
-              <input
+              <CheckBox
                 name="calendar"
-                type="checkbox"
                 value={option.id}
                 defaultChecked={data?.setting?.calendarIds?.includes(option.id)}
               />
@@ -86,10 +91,10 @@ export default function Page() {
 
         <label>
           出席者
-          <input type="email" name="attendeeEmail" />
+          <TextField type="email" name="attendeeEmail" />
         </label>
 
-        <button type="submit">送信</button>
+        <Button type="submit">送信</Button>
       </Form>
     </div>
   );

@@ -9,5 +9,6 @@
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "tailwindCSS.includeLanguages": { "javascript": "javascript" }
 }

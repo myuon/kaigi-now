@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@remix-run/cloudflare";
+import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
 import {
   Links,
   LiveReload,
@@ -8,6 +8,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import type { ErrorBoundaryComponent } from "@remix-run/react/routeModules";
+import styles from "./styles/generated.css";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -22,7 +23,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="text-gray-900">
         <Outlet />
         <ScrollRestoration />
         <Scripts />
@@ -45,4 +46,8 @@ export const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
       </body>
     </html>
   );
+};
+
+export const links: LinksFunction = () => {
+  return [{ rel: "stylesheet", href: styles }];
 };
