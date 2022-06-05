@@ -62,16 +62,20 @@ export const action: ActionFunction = async ({ request }) => {
       continue;
     }
 
-    const { data: event, error: errorCreateCalendarEvent } = await googleCalendarApi.createCalendarEvent(
-      accessToken,
-      {
-        calendarId: calendarId,
+    const { data: event, error: errorCreateCalendarEvent } =
+      await googleCalendarApi.createCalendarEvent(accessToken, {
+        // primaryに作って、探したcalendarを招待しておく
+        calendarId: "primary",
         start,
         end,
         location: itemsById?.[calendarId]?.summary,
         summary: "会議@会議なう",
-      }
-    );
+        attendees: [
+          {
+            email: calendarId,
+          },
+        ],
+      });
     if (errorCreateCalendarEvent) {
       console.error(errorCreateCalendarEvent);
       continue;

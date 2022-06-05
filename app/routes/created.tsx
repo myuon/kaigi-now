@@ -17,7 +17,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
   const url = new URL(request.url);
   const eventId = url.searchParams.get("eventId") ?? "";
-  const calendarId = url.searchParams.get("calendarId") ?? "";
+  const calendarId = "primary";
 
   const event = await googleCalendarApi.getCalendarEvent(auth.accessToken, {
     calendarId,
@@ -45,7 +45,8 @@ export const action: ActionFunction = async ({ request }) => {
   const { error } = await googleCalendarApi.deleteCalendarEvent(
     auth.accessToken,
     {
-      calendarId: formData.get("calendarId")! as string,
+      // primaryに作ったのでprimaryから消す
+      calendarId: "primary",
       eventId: formData.get("eventId")! as string,
     }
   );
