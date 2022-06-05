@@ -6,11 +6,28 @@ import { getAuth } from "../auth.server";
 import { Button, LinkButton } from "../components/Button";
 import { getSession } from "../sessions.server";
 
-export const loader: LoaderFunction = ({ request }) => {
+export const loader: LoaderFunction = async ({ request }) => {
+  const session = await getSession(request.headers.get("Cookie"));
+  const auth = await getAuth(session);
+  if (!auth) {
+    return new Response(JSON.stringify({ error: "auth is empty" }), {
+      status: 401,
+    });
+  }
+
   const url = new URL(request.url);
+  const eventId = url.searchParams.get("eventId") ?? "";
+  const calendarId = url.searchParams.get("calendarId") ?? "";
+
+  const event = await googleCalendarApi.getCalendarEvent(auth.accessToken, {
+    calendarId,
+    eventId,
+  });
+
   return json({
-    eventId: url.searchParams.get("eventId"),
-    calendarId: url.searchParams.get("calendarId"),
+    calendarId,
+    eventId,
+    event,
   });
 };
 
@@ -41,20 +58,28 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function Page() {
-  const { eventId, calendarId } = useLoaderData();
+  const { eventId, calendarId, event } = useLoaderData();
   const action = useActionData();
   const submit = useSubmit();
+  console.log(event);
 
   return (
-    <div className="p-4 grid gap-2">
+    <div className="p-4 grid gap-4">
       {action?.ok ? (
         <p className="text-red-600">作成した会議を取り消しました！</p>
       ) : (
-        <p>会議を作成しました！</p>
+        <p className="text-xl font-semibold">
+          予定を作成しました！{event.location}へどうぞ！
+        </p>
       )}
-      <p>
-        イベントID: {eventId}, カレンダーID: {calendarId}
-      </p>
+      <details>
+        <summary>
+          詳細 (イベントID: {eventId}, カレンダーID: {calendarId})
+        </summary>
+        <pre className="text-xs">
+          <code>{JSON.stringify(event, null, 4)}</code>
+        </pre>
+      </details>
       <Button
         onClick={() => {
           const ok = window.confirm("取り消しますか？");
@@ -67,7 +92,9 @@ export default function Page() {
               eventId,
               calendarId,
             },
-            {}
+            {
+              method: "post",
+            }
           );
         }}
       >

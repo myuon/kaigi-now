@@ -26,6 +26,12 @@ export const action: ActionFunction = async ({ request }) => {
   const start = dayjs();
   const end = dayjs().add(30, "m");
 
+  const { items } = await googleCalendarApi.getCalendarList(accessToken);
+  const itemsById = items.reduce((acc, item) => {
+    acc[item.id] = item;
+    return acc;
+  }, {} as Record<string, { summary: string }>);
+
   for (const key in setting?.calendarIds ?? []) {
     const calendarId = setting?.calendarIds?.[key];
     if (!calendarId) {
@@ -53,6 +59,8 @@ export const action: ActionFunction = async ({ request }) => {
       calendarId: calendarId,
       start,
       end,
+      location: itemsById?.[calendarId]?.summary,
+      summary: "会議@会議なう",
     });
 
     return json({

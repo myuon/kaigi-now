@@ -67,11 +67,15 @@ const createCalendarEvent = async (
     start,
     end,
     attendees,
+    location,
+    summary,
   }: {
     calendarId: string;
     start: dayjs.Dayjs;
     end: dayjs.Dayjs;
     attendees?: { email: string }[];
+    location?: string;
+    summary?: string;
   }
 ) => {
   const resp = await fetch(
@@ -86,6 +90,8 @@ const createCalendarEvent = async (
           dateTime: end.format("YYYY-MM-DDTHH:mm:ss+09:00"),
         },
         attendees,
+        location,
+        summary,
       }),
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -149,6 +155,34 @@ const getCalendarItemsOver = async (
   return body;
 };
 
+const getCalendarEvent = async (
+  accessToken: string,
+  {
+    calendarId,
+    eventId,
+  }: {
+    calendarId: string;
+    eventId: string;
+  }
+) => {
+  const resp = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
+      calendarId
+    )}/events/${eventId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (resp.ok) {
+    return await resp.json();
+  } else {
+    return await resp.json<{ error: { code: string } }>();
+  }
+};
+
 const deleteCalendarEvent = async (
   accessToken: string,
   {
@@ -160,7 +194,9 @@ const deleteCalendarEvent = async (
   }
 ) => {
   const resp = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
+      calendarId
+    )}/events/${eventId}`,
     {
       method: "DELETE",
       headers: {
@@ -181,6 +217,7 @@ export const googleCalendarApi = {
   getCalendarList,
   getCalendarItemsOver,
   deleteCalendarEvent,
+  getCalendarEvent,
 };
 
 const getPeopleMe = async (accessToken: string) => {
