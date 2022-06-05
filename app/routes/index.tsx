@@ -70,13 +70,8 @@ export default function Index() {
       </Link>
       <Button
         onClick={async () => {
-          console.log("click");
-
           submit(
-            {
-              calendarId: "",
-              attendeeEmail: "",
-            },
+            {},
             {
               method: "post",
             }

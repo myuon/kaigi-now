@@ -68,17 +68,16 @@ export default function Page() {
         ログイン
       </AnchorButton>
 
-      <p>{data?.userId}</p>
-      <pre>
-        <code>current: {JSON.stringify(data.setting)}</code>
-      </pre>
+      <p>UserID: {data?.userId}</p>
       <p>{JSON.stringify(result)}</p>
-      <Form method="put">
+      <Form method="put" className="grid gap-4">
         <input type="hidden" name="userId" value={data?.userId} />
 
         <fieldset>
+          <p>検索する会議室のカレンダーを選択</p>
+
           {data?.calendarList?.map((option) => (
-            <label key={option.id}>
+            <label key={option.id} className="flex items-center gap-1">
               <CheckBox
                 name="calendar"
                 value={option.id}
